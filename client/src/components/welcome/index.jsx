@@ -5,6 +5,7 @@ import { SiEthereum } from "react-icons/si";
 import { BsInfoCircle } from "react-icons/bs";
 
 import { Loader } from "..";
+import { useTransactionContext } from "../../context/transactionContext";
 
 const commonStyles =
   "min-h-[70px] sm:px-0 px-2 sm:min-w-[120px] flex justify-center items-center border-[0.5px] border-gray-400 text-sm font-light text-white";
@@ -22,7 +23,7 @@ const Input = ({ placeholder, handleChange, name, type, value }) => (
 );
 
 const Welcome = () => {
-  const connectWallet = () => {};
+  const { connectWallet, currentAccount } = useTransactionContext();
   const handleSubmit = () => {};
   return (
     <div className="flex w-full items-center justify-center">
@@ -35,13 +36,17 @@ const Welcome = () => {
             Explore the crypto world. Buy and Sell crypto currencies easily on
             Krypto
           </p>
-          <button
-            type="button"
-            onClick={connectWallet}
-            className="flex flex-row justify-center items-center my-5 bg-[#2952e3] p-3 rounded-full cursor-pointer hover:bg-[#2546bd]"
-          >
-            <p className="text-white text-base font-semibold">Connect Wallet</p>
-          </button>
+          {!currentAccount && (
+            <button
+              type="button"
+              onClick={connectWallet}
+              className="flex flex-row justify-center items-center my-5 bg-[#2952e3] p-3 rounded-full cursor-pointer hover:bg-[#2546bd]"
+            >
+              <p className="text-white text-base font-semibold">
+                Connect Wallet
+              </p>
+            </button>
+          )}
           <div className="grid grid-cols-3 w-full mt-10">
             <div className={`rounded-tl-2xl ${commonStyles}`}>Reliability</div>
             <div className={commonStyles}>Security</div>
