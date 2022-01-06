@@ -23,8 +23,21 @@ const Input = ({ placeholder, handleChange, name, type, value }) => (
 );
 
 const Welcome = () => {
-  const { connectWallet, currentAccount } = useTransactionContext();
-  const handleSubmit = () => {};
+  const {
+    connectWallet,
+    currentAccount,
+    formData,
+    handleChangeInput,
+    sendTransaction,
+    isLoading,
+  } = useTransactionContext();
+
+  const handleSubmit = (e) => {
+    const { addressTo, amount, keyword, message } = formData;
+    e.preventDefault();
+    if (!addressTo || !amount || !keyword || !message) return;
+    sendTransaction();
+  };
   return (
     <div className="flex w-full items-center justify-center">
       <div className="flex mf:flex-row flex-col items-start justify-between md:p-20 py-12 px-4">
@@ -66,7 +79,9 @@ const Welcome = () => {
                 <BsInfoCircle fontSize={17} color="#fff" />
               </div>
               <div>
-                <p className="text-white font-light text-sm ">Address</p>
+                <p className="text-white font-light text-sm ">
+                  {currentAccount}
+                </p>
                 <p className="text-white font-semi-bold text-lg ">Ethereum</p>
               </div>
             </div>
@@ -76,34 +91,34 @@ const Welcome = () => {
               placeholder="Address To"
               name="addressTo"
               type="text"
-              handleChange={() => {}}
+              handleChange={handleChangeInput}
             />
             <Input
               placeholder="Amount (ETH)"
               name="amount"
               type="number"
-              handleChange={() => {}}
+              handleChange={handleChangeInput}
             />
             <Input
               placeholder="Keyword (GIF)"
-              name="keywork"
+              name="keyword"
               type="text"
-              handleChange={() => {}}
+              handleChange={handleChangeInput}
             />
             <Input
               placeholder="Enter Message"
               name="message"
               type="text"
-              handleChange={() => {}}
+              handleChange={handleChangeInput}
             />
             <div className="h-[1px] w-full bg-gray-400 my-2" />
-            {true ? (
+            {isLoading ? (
               <Loader />
             ) : (
               <button
-                type="button"
+                type="submit"
                 onClick={handleSubmit}
-                className="text-whtie w-full mt-2 border-[1px] p-2 border-[#3d4f7x] rounded full cursor-pointer"
+                className="text-white w-full mt-2 border-[1px] p-2 border-[#3d4f7x] rounded full cursor-pointer"
               >
                 Send Now
               </button>
