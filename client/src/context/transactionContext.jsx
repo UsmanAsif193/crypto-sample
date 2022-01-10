@@ -32,97 +32,134 @@ const TransactionProvider = ({ children }) => {
   const [transactionCount, setTransactionCount] = useState(
     localStorage.getItem("transactionCount")
   );
+const [transactions, setTransactions] = useState([]);
+const handleChangeInput = (e, name) => {
+  setFormData((prevState) => ({ ...prevState, [name]: e.target.value }));
+};
 
-  const handleChangeInput = (e, name) => {
-    setFormData((prevState) => ({ ...prevState, [name]: e.target.value }));
-  };
+const getAllTransaction = async () => {
+  try {
+    if (!ethereum) return alert("Please install metamask");
+    const transactionContract = getEthereumContract();
+    const availableTransactions = await transactionContract.getAllTransaction();
+    const structuredTransaction = availableTransactions.map((transaction) => ({
+      addressTo: transaction.reciever,
+      addressFrom: transaction.sender,
+      timestamp: new Date(
+        transaction.timestamp.toNumber() * 1000
+      ).toLocaleString(),
+      message: transaction.message,
+      keyword: transaction.keyword,
+      amount: parseInt(transaction.amount._hex) / 10 ** 18,
+    }));
+    console.log(structuredTransaction);
+  } catch (error) {
+    console.log(error);
+    throw new Error("No Ethereum Object");
+  }
+};
 
-  const checkIfWalletIsConnected = async () => {
-    try {
-      if (!ethereum) return alert("Please install metamask");
-      const accounts = await ethereum.request({ method: "eth_accounts" });
-      if (accounts.length) setCurrentAccount(accounts[0]);
-      else console.log("No accounts found");
-    } catch (error) {
-      console.log(error);
-      throw new Error("No Ethereum Object");
-    }
-  };
+const checkIfWalletIsConnected = async () => {
+  try {
+    if (!ethereum) return alert("Please install metamask");
+    const accounts = await ethereum.request({ method: "eth_accounts" });
+    if (accounts.length) {
+      setCurrentAccount(accounts[0]);
+      getAllTransaction();
+    } else console.log("No accounts found");
+  } catch (error) {
+    console.log(error);
+    throw new Error("No Ethereum Object");
+  }
+};
 
-  const connectWallet = async () => {
-    try {
-      if (!ethereum) return alert("Please install metamask");
-      const accounts = await ethereum.request({
-        method: "eth_requestAccounts",
-      });
-      setCurrentAccount(accounts);
-    } catch (error) {
-      console.log(error);
-      throw new Error("No Ethereum Object");
-    }
-  };
+const checkIfTransactionExist = async () => {
+  try {
+    const transactionContract = getEthereumContract();
+    const TransactionCount = await transactionContract.getTransactionCount();
+    window.localStorage.setItem("transactionCount", TransactionCount);
+  } catch (error) {
+    console.log(error);
+    throw new Error("No Ethereum Object");
+  }
+};
 
-  const sendTransaction = async () => {
-    try {
-      if (!ethereum) return alert("Please install metamask");
+const connectWallet = async () => {
+  try {
+    if (!ethereum) return alert("Please install metamask");
+    const accounts = await ethereum.request({
+      method: "eth_requestAccounts",
+    });
+    setCurrentAccount(accounts);
+  } catch (error) {
+    console.log(error);
+    throw new Error("No Ethereum Object");
+  }
+};
 
-      //Get dafa from form
-      const { addressTo, amount, keyword, message } = formData;
-      const parsedAmount = ethers.utils.parseEther(amount);
-      const transactionContract = getEthereumContract();
-      await ethereum.request({
-        method: "eth_sendTransaction",
-        params: [
-          {
-            from: currentAccount,
-            to: addressTo,
-            gas: "0x5208", //hex decimal 21000 gwei ===  0.000021eth
-            value: parsedAmount._hex,
-          },
-        ],
-      });
+const sendTransaction = async () => {
+  try {
+    if (!ethereum) return alert("Please install metamask");
 
-      const transactionHash = await transactionContract.addToBlockchain(
-        addressTo,
-        parsedAmount,
-        message,
-        keyword
-      );
+    //Get dafa from form
+    const { addressTo, amount, keyword, message } = formData;
+    const parsedAmount = ethers.utils.parseEther(amount);
+    const transactionContract = getEthereumContract();
+    await ethereum.request({
+      method: "eth_sendTransaction",
+      params: [
+        {
+          from: currentAccount,
+          to: addressTo,
+          gas: "0x5208", //hex decimal 21000 gwei ===  0.000021eth
+          value: parsedAmount._hex,
+        },
+      ],
+    });
 
-      setIsLoading(true);
-      console.log(`Loading ~ ${transactionHash.hash}`);
-      await transactionHash.wait();
-      setIsLoading(false);
-      console.log(`Success ~ ${transactionHash.hash}`);
+    const transactionHash = await transactionContract.addToBlockchain(
+      addressTo,
+      parsedAmount,
+      message,
+      keyword
+    );
 
-      const TransactionCount = await transactionContract.getTransactionCount();
-      setTransactionCount(TransactionCount.toNumber());
-    } catch (error) {
-      console.log(error);
-      throw new Error("No Ethereum Object");
-    }
-  };
+    setIsLoading(true);
+    console.log(`Loading ~ ${transactionHash.hash}`);
+    await transactionHash.wait();
+    setIsLoading(false);
+    console.log(`Success ~ ${transactionHash.hash}`);
 
-  useEffect(() => {
-    checkIfWalletIsConnected();
-  }, []);
+    const TransactionCount = await transactionContract.getTransactionCount();
+    setTransactionCount(TransactionCount.toNumber());
+  } catch (error) {
+    console.log(error);
+    throw new Error("No Ethereum Object");
+  }
+};
 
-  return (
-    <TransactionContext.Provider
-      value={{
-        connectWallet,
-        currentAccount,
-        formData,
-        handleChangeInput,
-        setFormData,
-        sendTransaction,
-        transactionCount,
-        isLoading,
-      }}
-    >
-      {children}
-    </TransactionContext.Provider>
-  );
+useEffect(() => {
+  checkIfWalletIsConnected();
+  checkIfTransactionExist();
+}, []);
+
+return (
+  <TransactionContext.Provider
+    value={{
+      connectWallet,
+      currentAccount,
+      formData,
+      handleChangeInput,
+      setFormData,
+      sendTransaction,
+      transactionCount,
+      isLoading,
+      transactions,
+    }}
+  >
+    {children}
+  </TransactionContext.Provider>
+);
 };
 
 export default TransactionProvider;
