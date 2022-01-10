@@ -34,7 +34,7 @@ const TransactionCard = ({
             rel="noopener noreferrer"
           >
             <p className="text-white text-base">
-              From : shortenAddress(addressFrom)
+              From : {shortenAddress(addressFrom)}
             </p>
           </a>
           <a
@@ -43,7 +43,7 @@ const TransactionCard = ({
             rel="noopener noreferrer"
           >
             <p className="text-white text-base">
-              From : shortenAddress(addressTo)
+              From : {shortenAddress(addressTo)}
             </p>
           </a>
           <p className="text-white text-base">Amount: {amount} ETH</p>
@@ -68,7 +68,7 @@ const TransactionCard = ({
 };
 
 const Transactions = () => {
-  const { currentAccount } = useTransactionContext();
+  const { currentAccount, transactions } = useTransactionContext();
   return (
     <div className="flex w-full justify-center items-center 2xl:px-20 gradient-bg-transactions">
       <div className="flex flex-col md:p-12 py-12 px-4">
@@ -82,9 +82,15 @@ const Transactions = () => {
           </h3>
         )}
         <div className="flex flex-wrap justify-center items-center mt-10">
-          {dummyData.reverse().map((transaction, i) => (
-            <TransactionCard key={i} {...transaction} />
-          ))}
+          {transactions.length !== 0 ? (
+            transactions
+              .reverse()
+              .map((transaction, i) => (
+                <TransactionCard key={i} {...transaction} />
+              ))
+          ) : (
+            <p className="text-white italic">No Transactions Found</p>
+          )}
         </div>
       </div>
     </div>

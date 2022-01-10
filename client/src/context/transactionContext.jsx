@@ -41,7 +41,8 @@ const getAllTransaction = async () => {
   try {
     if (!ethereum) return alert("Please install metamask");
     const transactionContract = getEthereumContract();
-    const availableTransactions = await transactionContract.getAllTransaction();
+    const availableTransactions =
+      await transactionContract.getAllTransactions();
     const structuredTransaction = availableTransactions.map((transaction) => ({
       addressTo: transaction.reciever,
       addressFrom: transaction.sender,
@@ -52,7 +53,7 @@ const getAllTransaction = async () => {
       keyword: transaction.keyword,
       amount: parseInt(transaction.amount._hex) / 10 ** 18,
     }));
-    console.log(structuredTransaction);
+    setTransactions(structuredTransaction);
   } catch (error) {
     console.log(error);
     throw new Error("No Ethereum Object");
